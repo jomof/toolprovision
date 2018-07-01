@@ -13,6 +13,7 @@ matrix:
     - chmod +x gradlew
     - ./gradlew assemble
     - ./gradlew --info check
+    - ./gradlew assemble
 
 deploy:
   provider: releases
