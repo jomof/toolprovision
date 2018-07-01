@@ -11,7 +11,7 @@ matrix:
         - g++-4.8
     script:
     - chmod +x gradlew
-    - ./gradlew assemble
+    - chmod +x gradlew && ./gradlew assemble
     - ./gradlew --info check
     - ./gradlew assemble
 
