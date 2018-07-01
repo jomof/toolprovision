@@ -45,7 +45,7 @@ class ProvisionTest {
                     sb.append("replayer.addSubfolder(\"$parent\", \"$child\")\r\n")
                 }
             }
-            println("$sb")
+            System.err.print("$sb")
         }
     }
 
