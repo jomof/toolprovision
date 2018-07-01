@@ -1,6 +1,17 @@
 language: java
-jdk:
-- oraclejdk8
+matrix:
+  include:
+  - os: linux
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - gcc-4.8
+        - g++-4.8
+    script:
+    - ./gradlew assemble
+    - ./gradlew --info check
 
 deploy:
   provider: releases
