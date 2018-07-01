@@ -69,10 +69,12 @@ class ProvisionTest {
         }
 
         private fun isFile(file: String): Boolean {
+            println("Calling isFile($file)=${isFileCalls[file]}")
             return isFileCalls[file]!!
         }
 
         private fun listFolders(folder: String): List<String> {
+            println("Calling listFolders($folder)=${listFoldersCalls[folder]}")
             return listFoldersCalls[folder]!!
         }
 
