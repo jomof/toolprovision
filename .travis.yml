@@ -9,11 +9,8 @@ addons:
 language: java
 matrix:
   include:
-  - env: TARGET_OS=android_and_linux
-    script:
-    - x
-    - chmod +x gradlew
-    - "./gradlew assemble check"
+  - script:
+    - gradle --info assemble check
 
 
 deploy:
