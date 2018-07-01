@@ -1,14 +1,13 @@
 package com.github.jomof.toolprovision
 
 import com.github.jomof.toolprovision.dsl.*
-import java.io.File
 
 class ProvisionScope(
         private val isWindows : Boolean,
-        private val isFile : (File) -> Boolean,
-        private val listFolders : (File) -> List<File>) {
+        private val isFile: (String) -> Boolean,
+        private val listFolders: (String) -> List<String>) {
 
-    private fun expand(folder : File, segments : List<String>) : List<File> {
+    private fun expand(folder: String, segments: List<String>): List<String> {
         if (segments.isEmpty()) {
             if (!isFile(folder)) {
                 return listOf()
@@ -18,24 +17,26 @@ class ProvisionScope(
         val next = segments[0]
         val remaining = segments.drop(1)
         return listFolders(folder)
-                .flatMap { sub -> expand(File(sub, next), remaining) }
+                .flatMap { sub -> expand(file(sub, next), remaining) }
     }
 
-    private fun file(left : String, right : File) : File {
-        return File(left, right.toString())
+    private fun file(left: String, right: String): String {
+        if (left.isEmpty()) return right
+        if (right.isEmpty()) return left
+        return "$left/$right"
     }
 
-    private fun expand(path : File) : List<File> {
-        val split = path.toString().split("*")
-        return expand(File(split[0]), split.drop(1))
+    private fun expand(path: String): List<String> {
+        val split = path.split("*")
+        return expand(split[0], split.drop(1))
     }
 
-    private fun provision(exe : String, path : File) : List<File> {
+    private fun provision(exe: String, path: String): List<String> {
         val exeName = exe + if (isWindows) ".exe" else ""
-        return expand(File(path, exeName))
+        return expand(file(path, exeName))
     }
 
-    private fun provision(exe : String, folder : File, search : WindowsSearchLocation) : List<File> {
+    private fun provision(exe: String, folder: String, search: WindowsSearchLocation): List<String> {
         if (!isWindows) return listOf()
         val sub = file(search.folder, folder)
         return when(search.type) {
@@ -47,7 +48,7 @@ class ProvisionScope(
         }
     }
 
-    private fun provision(exe : String, folder : File, search : PackageSearchLocation, provisioning : ProvisionDef) : List<File> {
+    private fun provision(exe: String, folder: String, search: PackageSearchLocation, provisioning: ProvisionDef): List<String> {
         return provisioning.packages.flatMap { pkg ->
             if (pkg.name == search.pkg) {
                 provision(exe, file(search.folder, folder), pkg.search, provisioning)
@@ -57,7 +58,7 @@ class ProvisionScope(
         }
     }
 
-    private fun provision(exe : String, folder : File, search : SearchLocation, provisioning : ProvisionDef) : List<File> {
+    private fun provision(exe: String, folder: String, search: SearchLocation, provisioning: ProvisionDef): List<String> {
         return when(search) {
             is WindowsSearchLocation -> provision(exe, folder, search)
             is PackageSearchLocation -> provision(exe, folder, search, provisioning)
@@ -65,32 +66,32 @@ class ProvisionScope(
         }
     }
 
-    private fun provision(exe: String, folder : File, search: List<SearchLocation>, provisioning: ProvisionDef): List<File> {
+    private fun provision(exe: String, folder: String, search: List<SearchLocation>, provisioning: ProvisionDef): List<String> {
         return search.flatMap { location ->
             provision(exe, folder, location, provisioning)
         }
     }
 
-    private fun provision(exe : String, search : SearchLocation, provisioning : ProvisionDef) : List<File> {
+    private fun provision(exe: String, search: SearchLocation, provisioning: ProvisionDef): List<String> {
         return when(search) {
-            is WindowsSearchLocation -> provision(exe, File(""), search)
-            is PackageSearchLocation -> provision(exe, File(""), search, provisioning)
+            is WindowsSearchLocation -> provision(exe, "", search)
+            is PackageSearchLocation -> provision(exe, "", search, provisioning)
             else -> throw RuntimeException()
         }
     }
 
-    private fun provision(exe : String, search : List<SearchLocation>, provisioning : ProvisionDef) : List<File> {
+    private fun provision(exe: String, search: List<SearchLocation>, provisioning: ProvisionDef): List<String> {
         return search.flatMap { location ->
             provision(exe, location, provisioning)
         }
     }
 
-    private fun provision(exe : String, tool : ToolDef, provisioning : ProvisionDef) : List<File> {
+    private fun provision(exe: String, tool: ToolDef, provisioning: ProvisionDef): List<String> {
         if (exe != tool.exe) return listOf()
         return provision(exe, tool.search, provisioning)
     }
 
-    fun provision(exe : String) : List<File> {
+    fun provision(exe: String): List<String> {
         val provisioning = createProvisioning()
         return provisioning.tools.flatMap { tool ->
             provision(exe, tool, provisioning)

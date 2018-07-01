@@ -43,12 +43,15 @@ fun createProvisioning() =
                                 search = listOf(
                                         WindowsSearchLocation(AppData, "/Android/Sdk")))))
 
-fun provision(exe : String) : List<File> {
+private fun isFile(file: String) = File(file).isFile
+private fun listFolders(folder: String): List<String> {
+    return File(folder).listFiles().filter { it.isDirectory }.map { it.toString() }
+}
+
+fun provision(exe: String): List<String> {
     return ProvisionScope(
-            isWindows,
-            { file -> file.isFile },
-            { folder -> folder.listFiles().filter {
-                it.isDirectory
-            }}
+            isWindows = isWindows,
+            isFile = ::isFile,
+            listFolders = ::listFolders
     ).provision(exe)
 }
