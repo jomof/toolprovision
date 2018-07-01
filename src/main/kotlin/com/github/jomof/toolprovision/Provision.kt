@@ -14,11 +14,19 @@ fun createProvisioning() =
                                         PackageSearchLocation("CMake", "bin"))),
                         ToolDef(
                                 exe = "ninja",
-                                search = listOf()),
+                                search = listOf(
+                                        PackageSearchLocation("CMake", "bin"),
+                                        PackageSearchLocation("Ninja", "")
+                                )),
                         ToolDef(
                                 exe = "clang++",
                                 search = listOf())),
                 listOf(
+                        PackageDef(
+                                name = "Ninja",
+                                search = listOf(
+                                        WindowsSearchLocation(ProgramFiles, "Microsoft Visual Studio/2017/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja")
+                                )),
                         PackageDef(
                                 name = "CMake",
                                 search = listOf(

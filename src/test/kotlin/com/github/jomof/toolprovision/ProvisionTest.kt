@@ -32,33 +32,38 @@ class ProvisionTest {
 
         fun printReplayer() {
             val sb = StringBuilder()
-            sb.append("val replayer = ProvisionReplayer(\r\n")
-            sb.append("    mapOf(\r\n")
+            sb.append("val replayer = ProvisionReplayer()\r\n")
             for ((file, value) in isFileCalls) {
                 val doubled = file.toString().replace("\\", "\\\\")
-                sb.append("      File(\"$doubled\") to $value,\r\n")
+                sb.append("replayer.addIsFile(\"$doubled\", $value)\r\n")
             }
-            sb.append("    ),\r\n")
-            sb.append("    mapOf(\r\n")
             for ((folder, values) in listFoldersCalls) {
-                val doubled = folder.toString().replace("\\", "\\\\")
-                sb.append("      File(\"$doubled\") to listOf(\r\n")
+                val parent = folder.toString().replace("\\", "\\\\")
                 for(value in values) {
-                    val doubled2 = value.toString().replace("\\", "\\\\")
-                    sb.append("            File(\"$doubled2\"),\r\n")
+                    val child = value.toString().replace("\\", "\\\\")
+                    sb.append("replayer.addSubfolder(\"$parent\", \"$child\")\r\n")
                 }
-                sb.append("      ),\r\n")
             }
-            sb.append("    ),\r\n")
-            sb.append(")\r\n")
             println("$sb")
         }
     }
 
-    class ProvisionReplayer(
-            val isFileCalls : Map<File, Boolean>,
-            val listFoldersCalls : Map<File, List<File>>
-    ) {
+    class ProvisionReplayer {
+        private val isFileCalls = mutableMapOf<File, Boolean>()
+        private val listFoldersCalls = mutableMapOf<File, MutableList<File>>()
+        fun addIsFile(file: String, result: Boolean) {
+            isFileCalls[File(file)] = result
+        }
+
+        fun addSubfolder(folderString: String, sub: String) {
+            val folder = File(folderString)
+            var children = listFoldersCalls[folder]
+            if (children == null) {
+                children = mutableListOf()
+                listFoldersCalls[folder] = children
+            }
+            children.add(File(sub))
+        }
 
         private fun isFile(file : File) : Boolean {
             return isFileCalls[file]!!
@@ -83,27 +88,31 @@ class ProvisionTest {
         val recorder = ProvisionRecorder()
         val cmakes = recorder.provision("cmake")
         println("Found=$cmakes")
+        val ninjas = recorder.provision("ninja")
+        println("Found=$ninjas")
         recorder.printReplayer()
     }
 
     @Test
     fun testWindowsReplay() {
-        val replayer = ProvisionReplayer(
-                mapOf(
-                        File("C:\\Users\\jomof\\AppData\\Local\\Android\\Sdk\\cmake\\3.6.4111459\\bin\\cmake.exe") to true,
-                        File("C:\\Program Files\\CMake\\bin\\cmake.exe") to true,
-                        File("C:\\Program Files (x86)\\CMake\\bin\\cmake.exe") to false,
-                        File("C:\\Program Files\\Microsoft Visual Studio\\2017\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe") to false,
-                        File("C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe") to true
-                        ),
-                mapOf(
-                        File("C:\\Users\\jomof\\AppData\\Local\\Android\\Sdk\\cmake") to listOf(
-                                File("C:\\Users\\jomof\\AppData\\Local\\Android\\Sdk\\cmake\\3.6.4111459")
-                                )
-                        )
-                )
+        val replayer = ProvisionReplayer()
+        replayer.addIsFile("C:\\Users\\jomof\\AppData\\Local\\Android\\Sdk\\cmake\\3.6.4111459\\bin\\cmake.exe", true)
+        replayer.addIsFile("C:\\Program Files\\CMake\\bin\\cmake.exe", true)
+        replayer.addIsFile("C:\\Program Files (x86)\\CMake\\bin\\cmake.exe", false)
+        replayer.addIsFile("C:\\Program Files\\Microsoft Visual Studio\\2017\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe", false)
+        replayer.addIsFile("C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe", true)
+        replayer.addIsFile("C:\\Users\\jomof\\AppData\\Local\\Android\\Sdk\\cmake\\3.6.4111459\\bin\\ninja.exe", true)
+        replayer.addIsFile("C:\\Program Files\\CMake\\bin\\ninja.exe", false)
+        replayer.addIsFile("C:\\Program Files (x86)\\CMake\\bin\\ninja.exe", false)
+        replayer.addIsFile("C:\\Program Files\\Microsoft Visual Studio\\2017\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\ninja.exe", false)
+        replayer.addIsFile("C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\ninja.exe", false)
+        replayer.addIsFile("C:\\Program Files\\Microsoft Visual Studio\\2017\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe", false)
+        replayer.addIsFile("C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe", true)
+        replayer.addSubfolder("C:\\Users\\jomof\\AppData\\Local\\Android\\Sdk\\cmake", "C:\\Users\\jomof\\AppData\\Local\\Android\\Sdk\\cmake\\3.6.4111459")
 
         val cmakes = replayer.provision("cmake")
         println("Found=$cmakes")
+        val ninjas = replayer.provision("ninja")
+        println("Found=$ninjas")
     }
 }
