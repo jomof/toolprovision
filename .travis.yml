@@ -1,26 +1,3 @@
-addons:
-  apt:
-    packages:
-    - g++-4.8
-    - clang-3.6
-    sources:
-    - ubuntu-toolchain-r-test
-    - llvm-toolchain-precise-3.6
-language: java
-matrix:
-  include:
-  - script:
-    - gradle --info assemble check
-
-
-deploy:
-  provider: releases
-  api_key:
-    secure: L7aMMzav3wuT3RlA2f6MuDGiQy1X0gznzWFATg4iZ4PVUxaSOBINtL9cSi4kfZGg9HSCTo8mmE+X829fYMP5u1M8h2mFExDQ3Qck35vuDtVBwi9246T8zV9gcfRJBGc98+8novoabOenkgnpza+BQmfMAIyFm/lk6LEmMPzWPeVBlm4S337fs23FD/rgDdCSywrjf/tGvNpWfgsUtMnBNlF+llVdziSkjmiYzEjVVmG9hu/YS4wWispUOMbyimJUqyUGhgzA8PrrZFSIMTrsGMqIM2UBU4j/ifQQa7T7+wfBcrbJtvTz7XN9Vat895JS/qOw5UnzaOWJMt7h0HMgI1KWzuUdCvCA4C76Xt1vOvRDBT5EqIYmrUVcbseBumNMhmvJ3q0cOr4l0IdQsO5R1J8bHw7QbeaA7FchVIEab5dnWMaC/q+LYz6Psoncp6JiHQiei6ATH7u+iAmzDkU4YfKht5pRfNG5DcKZ6+nJbiimNo+ruWBm9lvtjkEaYInoobcOsHfPMyedd0UbclraGUkiYBWJag36MQ/5/Ff+0I07/bntWfnirlXPUMqoU2WjYYoV2FFsrECIW8QFG8rBEY2knM5MS1LgwGVEXreuuwRGZ9pqzNFZLjnrct1+RM5PauXIlovXTAeFvvKjXDU4NaKVNi7RkMfrWbRQWPj8Zf8=
-  file:
-  - build/libs/toolprovision-${TRAVIS_TAG}.jar
-  - build/libs/toolprovision-${TRAVIS_TAG}-sources.jar
-  - build/libs/toolprovision-${TRAVIS_TAG}-javadoc.jar
-  skip_cleanup: true
-  on:
-    tags: true
+script:
+- chmod +x gradlew
+- ./gradlew check
