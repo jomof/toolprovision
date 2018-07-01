@@ -1,5 +1,6 @@
 package com.github.jomof.toolprovision
 
+import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.io.File
 
@@ -111,8 +112,10 @@ class ProvisionTest {
         replayer.addSubfolder("C:\\Users\\jomof\\AppData\\Local\\Android\\Sdk\\cmake", "C:\\Users\\jomof\\AppData\\Local\\Android\\Sdk\\cmake\\3.6.4111459")
 
         val cmakes = replayer.provision("cmake")
+        assertThat(cmakes).hasSize(3)
         println("Found=$cmakes")
         val ninjas = replayer.provision("ninja")
+        assertThat(ninjas).hasSize(2)
         println("Found=$ninjas")
     }
 }
