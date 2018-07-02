@@ -3,6 +3,9 @@ addons:
     packages:
       - cmake-data
       - cmake
+      - ninja
 script:
+- /usr/bin/cmake --version
 - chmod +x gradlew
 - ./gradlew --info check
+
