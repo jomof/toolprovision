@@ -120,6 +120,15 @@ class ProvisionTest {
     }
 
     @Test
+    fun testLinuxReplay() {
+        val replayer = ProvisionReplayer(false)
+        replayer.addIsFile("/usr/bin/cmake", true)
+        replayer.addIsFile("/usr/bin/ninja", true)
+        val cmakes = replayer.provision("cmake")
+        println("Found=$cmakes")
+    }
+
+    @Test
     fun testWindowsReplay() {
         val replayer = ProvisionReplayer(true)
         replayer.addGetenv("LOCALAPPDATA", "C:\\Users\\jomof\\AppData\\Local")

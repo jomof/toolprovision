@@ -56,7 +56,7 @@ class ProvisionScope(
         val sub = file(search.folder, folder)
         return when (search.type) {
             LinuxSearchLocationType.Path ->
-                provision(exe, file("/usr/bin", sub))
+                provision(exe, sub)
         }
     }
 
