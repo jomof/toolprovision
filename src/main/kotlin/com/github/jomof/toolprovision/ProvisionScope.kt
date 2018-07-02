@@ -1,6 +1,8 @@
 package com.github.jomof.toolprovision
 
 import com.github.jomof.toolprovision.dsl.*
+import com.github.jomof.toolprovision.dsl.WindowsSearchLocationType.AppData
+import com.github.jomof.toolprovision.dsl.WindowsSearchLocationType.ProgramFiles
 
 class ProvisionScope(
         private val isWindows : Boolean,
@@ -41,11 +43,20 @@ class ProvisionScope(
         if (!isWindows) return listOf()
         val sub = file(search.folder, folder)
         return when(search.type) {
-            WindowsSearchLocationType.AppData ->
+            AppData ->
                 provision(exe, file(getenv("LOCALAPPDATA"), sub))
-            WindowsSearchLocationType.ProgramFiles ->
+            ProgramFiles ->
                 provision(exe, file(getenv("ProgramFiles"), sub)) +
                         provision(exe, file(getenv("ProgramFiles(x86)"), sub))
+        }
+    }
+
+    private fun provision(exe: String, folder: String, search: LinuxSearchLocation): List<String> {
+        if (isWindows) return listOf()
+        val sub = file(search.folder, folder)
+        return when (search.type) {
+            LinuxSearchLocationType.Path ->
+                provision(exe, file("/usr/bin", sub))
         }
     }
 
@@ -76,6 +87,7 @@ class ProvisionScope(
     private fun provision(exe: String, search: SearchLocation, provisioning: ProvisionDef): List<String> {
         return when(search) {
             is WindowsSearchLocation -> provision(exe, "", search)
+            is LinuxSearchLocation -> provision(exe, "", search)
             is PackageSearchLocation -> provision(exe, "", search, provisioning)
             else -> throw RuntimeException()
         }

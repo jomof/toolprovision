@@ -1,6 +1,7 @@
 package com.github.jomof.toolprovision
 
 import com.github.jomof.toolprovision.dsl.*
+import com.github.jomof.toolprovision.dsl.LinuxSearchLocationType.Path
 import com.github.jomof.toolprovision.dsl.WindowsSearchLocationType.AppData
 import com.github.jomof.toolprovision.dsl.WindowsSearchLocationType.ProgramFiles
 import java.io.File
@@ -11,16 +12,20 @@ fun createProvisioning() =
                         ToolDef(
                                 exe = "cmake",
                                 search = listOf(
+                                        LinuxSearchLocation(Path, "/usr/bin"),
                                         PackageSearchLocation("CMake", "bin"))),
                         ToolDef(
                                 exe = "ninja",
                                 search = listOf(
+                                        LinuxSearchLocation(Path, "/usr/bin"),
                                         PackageSearchLocation("CMake", "bin"),
                                         PackageSearchLocation("Ninja", "")
                                 )),
                         ToolDef(
                                 exe = "clang++",
-                                search = listOf())),
+                                search = listOf(
+                                        LinuxSearchLocation(Path, "/usr/bin")
+                                ))),
                 listOf(
                         PackageDef(
                                 name = "Ninja",
