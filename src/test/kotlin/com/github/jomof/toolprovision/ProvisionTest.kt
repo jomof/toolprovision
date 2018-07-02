@@ -52,7 +52,7 @@ class ProvisionTest {
         }
     }
 
-    class ProvisionReplayer {
+    class ProvisionReplayer(val isWindows: Boolean) {
         private val isFileCalls = mutableMapOf<String, Boolean>()
         private val listFoldersCalls = mutableMapOf<String, MutableList<String>>()
         fun addIsFile(file: String, result: Boolean) {
@@ -69,12 +69,10 @@ class ProvisionTest {
         }
 
         private fun isFile(file: String): Boolean {
-            System.err.println("Calling isFile($file)=${isFileCalls[file]}")
             return isFileCalls[file]!!
         }
 
         private fun listFolders(folder: String): List<String> {
-            System.err.println("Calling listFolders($folder)=${listFoldersCalls[folder]}")
             return listFoldersCalls[folder]!!
         }
 
@@ -100,7 +98,7 @@ class ProvisionTest {
 
     @Test
     fun testWindowsReplay() {
-        val replayer = ProvisionReplayer()
+        val replayer = ProvisionReplayer(true)
         replayer.addIsFile("C:\\Users\\jomof\\AppData\\Local\\Android\\Sdk\\cmake\\3.6.4111459//bin/cmake.exe", true)
         replayer.addIsFile("C:\\Program Files/CMake/bin/cmake.exe", true)
         replayer.addIsFile("C:\\Program Files (x86)/CMake/bin/cmake.exe", false)
