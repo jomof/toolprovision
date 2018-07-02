@@ -44,8 +44,8 @@ class ProvisionScope(
             WindowsSearchLocationType.AppData ->
                 provision(exe, file(getenv("LOCALAPPDATA"), sub))
             WindowsSearchLocationType.ProgramFiles ->
-                provision(exe, file(System.getenv("ProgramFiles"), sub)) +
-                        provision(exe, file(System.getenv("ProgramFiles(x86)"), sub))
+                provision(exe, file(getenv("ProgramFiles"), sub)) +
+                        provision(exe, file(getenv("ProgramFiles(x86)"), sub))
         }
     }
 

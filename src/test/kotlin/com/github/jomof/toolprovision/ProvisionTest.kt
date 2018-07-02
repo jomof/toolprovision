@@ -123,6 +123,8 @@ class ProvisionTest {
     fun testWindowsReplay() {
         val replayer = ProvisionReplayer(true)
         replayer.addGetenv("LOCALAPPDATA", "C:\\Users\\jomof\\AppData\\Local")
+        replayer.addGetenv("ProgramFiles", "C:\\Program Files")
+        replayer.addGetenv("ProgramFiles(x86)", "C:\\Program Files (x86)")
         replayer.addIsFile("C:\\Users\\jomof\\AppData\\Local\\Android\\Sdk\\cmake\\3.6.4111459//bin/cmake.exe", true)
         replayer.addIsFile("C:\\Program Files/CMake/bin/cmake.exe", true)
         replayer.addIsFile("C:\\Program Files (x86)/CMake/bin/cmake.exe", false)
