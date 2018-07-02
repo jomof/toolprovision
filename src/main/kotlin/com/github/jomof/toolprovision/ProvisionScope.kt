@@ -4,6 +4,7 @@ import com.github.jomof.toolprovision.dsl.*
 
 class ProvisionScope(
         private val isWindows : Boolean,
+        private val getenv: (String) -> String,
         private val isFile: (String) -> Boolean,
         private val listFolders: (String) -> List<String>) {
 
@@ -41,7 +42,7 @@ class ProvisionScope(
         val sub = file(search.folder, folder)
         return when(search.type) {
             WindowsSearchLocationType.AppData ->
-                provision(exe, file(System.getenv("LOCALAPPDATA"), sub))
+                provision(exe, file(getenv("LOCALAPPDATA"), sub))
             WindowsSearchLocationType.ProgramFiles ->
                 provision(exe, file(System.getenv("ProgramFiles"), sub)) +
                         provision(exe, file(System.getenv("ProgramFiles(x86)"), sub))

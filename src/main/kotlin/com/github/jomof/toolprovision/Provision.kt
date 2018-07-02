@@ -48,9 +48,12 @@ private fun listFolders(folder: String): List<String> {
     return File(folder).listFiles().filter { it.isDirectory }.map { it.toString() }
 }
 
+private fun getenv(key: String) = System.getenv(key)
+
 fun provision(exe: String): List<String> {
     return ProvisionScope(
             isWindows = isWindows,
+            getenv = ::getenv,
             isFile = ::isFile,
             listFolders = ::listFolders
     ).provision(exe)

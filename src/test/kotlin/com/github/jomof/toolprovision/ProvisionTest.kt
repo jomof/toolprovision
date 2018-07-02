@@ -6,9 +6,16 @@ import java.io.File
 
 class ProvisionTest {
     class ProvisionRecorder {
+        private val getenvCalls = mutableMapOf<String, String>()
         private val isFileCalls = mutableMapOf<String, Boolean>()
         private val listFoldersCalls = mutableMapOf<String, List<String>>()
 
+        private fun getenv(key: String): String {
+            val prior = getenvCalls[key]
+            if (prior != null) return prior
+            getenvCalls[key] = System.getenv(key)
+            return getenv(key)
+        }
         private fun isFile(file: String): Boolean {
             val prior = isFileCalls[file]
             if (prior != null) return prior
@@ -29,6 +36,7 @@ class ProvisionTest {
         fun provision(exe: String): List<String> {
             return ProvisionScope(
                     isWindows,
+                    ::getenv,
                     ::isFile,
                     ::listFolders
             ).provision(exe)
@@ -37,6 +45,10 @@ class ProvisionTest {
         fun printReplayer() {
             val sb = StringBuilder()
             sb.append("val replayer = ProvisionReplayer()\r\n")
+            for ((key, value) in getenvCalls) {
+                val doubled = value.replace("\\", "\\\\")
+                sb.append("replayer.addGetenv(\"$key\", \"$doubled\")\r\n")
+            }
             for ((file, value) in isFileCalls) {
                 val doubled = file.replace("\\", "\\\\")
                 sb.append("replayer.addIsFile(\"$doubled\", $value)\r\n")
@@ -53,8 +65,14 @@ class ProvisionTest {
     }
 
     class ProvisionReplayer(val isWindows: Boolean) {
+        private val getenvCalls = mutableMapOf<String, String>()
         private val isFileCalls = mutableMapOf<String, Boolean>()
         private val listFoldersCalls = mutableMapOf<String, MutableList<String>>()
+
+        fun addGetenv(key: String, value: String) {
+            getenvCalls[key] = value
+        }
+
         fun addIsFile(file: String, result: Boolean) {
             isFileCalls[file] = result
         }
@@ -68,6 +86,10 @@ class ProvisionTest {
             children.add(sub)
         }
 
+        private fun getenv(key: String): String {
+            return getenvCalls[key]!!
+        }
+
         private fun isFile(file: String): Boolean {
             return isFileCalls[file]!!
         }
@@ -79,6 +101,7 @@ class ProvisionTest {
         fun provision(exe: String): List<String> {
             return ProvisionScope(
                     isWindows,
+                    ::getenv,
                     ::isFile,
                     ::listFolders
             ).provision(exe)
@@ -99,6 +122,7 @@ class ProvisionTest {
     @Test
     fun testWindowsReplay() {
         val replayer = ProvisionReplayer(true)
+        replayer.addGetenv("LOCALAPPDATA", "C:\\Users\\jomof\\AppData\\Local")
         replayer.addIsFile("C:\\Users\\jomof\\AppData\\Local\\Android\\Sdk\\cmake\\3.6.4111459//bin/cmake.exe", true)
         replayer.addIsFile("C:\\Program Files/CMake/bin/cmake.exe", true)
         replayer.addIsFile("C:\\Program Files (x86)/CMake/bin/cmake.exe", false)
