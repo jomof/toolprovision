@@ -126,10 +126,16 @@ class ProvisionTest {
     @Test
     fun testLinuxReplay() {
         val replayer = ProvisionReplayer(false)
+        replayer.addGetenv("ANDROID_HOME", "/usr/local/android-sdk/")
         replayer.addIsFile("/usr/bin/cmake", true)
-        replayer.addIsFile("/usr/bin/ninja", true)
+        replayer.addIsFile("/usr/local/android-sdk/cmake/3.6.4111459/bin/cmake", true)
+        replayer.addIsFile("/usr/bin/ninja", false)
+        replayer.addIsFile("/usr/local/android-sdk/cmake/3.6.4111459/bin/ninja", true)
+        replayer.addSubfolder("/usr/local/android-sdk/cmake/", "/usr/local/android-sdk/cmake/3.6.4111459")
         val cmakes = replayer.provision("cmake")
         println("Found=$cmakes")
+        assertThat(cmakes).contains("/usr/bin/cmake")
+        assertThat(cmakes).contains("/usr/local/android-sdk/cmake/3.6.4111459/bin/cmake")
     }
 
     @Test
