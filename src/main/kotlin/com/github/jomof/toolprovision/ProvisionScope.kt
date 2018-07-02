@@ -6,7 +6,7 @@ import com.github.jomof.toolprovision.dsl.WindowsSearchLocationType.ProgramFiles
 
 class ProvisionScope(
         private val isWindows : Boolean,
-        private val getenv: (String) -> String,
+        private val getenv: (String) -> String?,
         private val isFile: (String) -> Boolean,
         private val listFolders: (String) -> List<String>) {
 
@@ -23,10 +23,14 @@ class ProvisionScope(
                 .flatMap { sub -> expand(file(sub, next), remaining) }
     }
 
+    private fun normalize(path: String): String {
+        return path.replace("\\", "/").replace("//", "/")
+    }
+
     private fun file(left: String, right: String): String {
-        if (left.isEmpty()) return right
-        if (right.isEmpty()) return left
-        return "$left/$right"
+        if (left.isEmpty()) return normalize(right)
+        if (right.isEmpty()) return normalize(left)
+        return normalize("$left/$right")
     }
 
     private fun expand(path: String): List<String> {
@@ -39,25 +43,32 @@ class ProvisionScope(
         return expand(file(path, exeName))
     }
 
+    private fun provision(exe: String, variable: String, sub: String): List<String> {
+        val value = getenv(variable) ?: return listOf()
+        return provision(exe, file(value, sub))
+    }
+
     private fun provision(exe: String, folder: String, search: WindowsSearchLocation): List<String> {
         if (!isWindows) return listOf()
         val sub = file(search.folder, folder)
         return when(search.type) {
             AppData ->
-                provision(exe, file(getenv("LOCALAPPDATA"), sub))
-            ProgramFiles ->
-                provision(exe, file(getenv("ProgramFiles"), sub)) +
-                        provision(exe, file(getenv("ProgramFiles(x86)"), sub))
+                provision(exe, "LOCALAPPDATA", sub)
+            ProgramFiles -> {
+                provision(exe, "ProgramFiles", sub) +
+                        provision(exe, "ProgramFiles(x86)", sub)
+            }
         }
     }
 
     private fun provision(exe: String, folder: String, search: LinuxSearchLocation): List<String> {
         if (isWindows) return listOf()
         val sub = file(search.folder, folder)
-        return when (search.type) {
-            LinuxSearchLocationType.Path ->
-                provision(exe, sub)
-        }
+        return provision(exe, sub)
+    }
+
+    private fun provision(exe: String, folder: String, search: EnvironmentSearchLocation): List<String> {
+        return provision(exe, search.variable, folder)
     }
 
     private fun provision(exe: String, folder: String, search: PackageSearchLocation, provisioning: ProvisionDef): List<String> {
@@ -72,9 +83,11 @@ class ProvisionScope(
 
     private fun provision(exe: String, folder: String, search: SearchLocation, provisioning: ProvisionDef): List<String> {
         return when(search) {
+            is EnvironmentSearchLocation -> provision(exe, folder, search)
             is WindowsSearchLocation -> provision(exe, folder, search)
+            is LinuxSearchLocation -> provision(exe, folder, search)
             is PackageSearchLocation -> provision(exe, folder, search, provisioning)
-            else -> throw RuntimeException()
+            else -> throw RuntimeException(search.toString())
         }
     }
 
@@ -84,18 +97,9 @@ class ProvisionScope(
         }
     }
 
-    private fun provision(exe: String, search: SearchLocation, provisioning: ProvisionDef): List<String> {
-        return when(search) {
-            is WindowsSearchLocation -> provision(exe, "", search)
-            is LinuxSearchLocation -> provision(exe, "", search)
-            is PackageSearchLocation -> provision(exe, "", search, provisioning)
-            else -> throw RuntimeException()
-        }
-    }
-
     private fun provision(exe: String, search: List<SearchLocation>, provisioning: ProvisionDef): List<String> {
         return search.flatMap { location ->
-            provision(exe, location, provisioning)
+            provision(exe, "", location, provisioning)
         }
     }
 

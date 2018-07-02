@@ -6,13 +6,14 @@ import java.io.File
 
 class ProvisionTest {
     class ProvisionRecorder {
-        private val getenvCalls = mutableMapOf<String, String>()
+        private val getenvCalls = mutableMapOf<String, String?>()
         private val isFileCalls = mutableMapOf<String, Boolean>()
         private val listFoldersCalls = mutableMapOf<String, List<String>>()
 
-        private fun getenv(key: String): String {
-            val prior = getenvCalls[key]
-            if (prior != null) return prior
+        private fun getenv(key: String): String? {
+            if (getenvCalls.containsKey(key)) {
+                return getenvCalls[key]
+            }
             getenvCalls[key] = System.getenv(key)
             return getenv(key)
         }
@@ -46,8 +47,12 @@ class ProvisionTest {
             val sb = StringBuilder()
             sb.append("val replayer = ProvisionReplayer()\r\n")
             for ((key, value) in getenvCalls) {
-                val doubled = value.replace("\\", "\\\\")
-                sb.append("replayer.addGetenv(\"$key\", \"$doubled\")\r\n")
+                if (value == null) {
+                    sb.append("replayer.addGetenv(\"$key\", null)\r\n")
+                } else {
+                    val doubled = value.replace("\\", "\\\\")
+                    sb.append("replayer.addGetenv(\"$key\", \"$doubled\")\r\n")
+                }
             }
             for ((file, value) in isFileCalls) {
                 val doubled = file.replace("\\", "\\\\")
@@ -65,11 +70,11 @@ class ProvisionTest {
     }
 
     class ProvisionReplayer(val isWindows: Boolean) {
-        private val getenvCalls = mutableMapOf<String, String>()
+        private val getenvCalls = mutableMapOf<String, String?>()
         private val isFileCalls = mutableMapOf<String, Boolean>()
         private val listFoldersCalls = mutableMapOf<String, MutableList<String>>()
 
-        fun addGetenv(key: String, value: String) {
+        fun addGetenv(key: String, value: String?) {
             getenvCalls[key] = value
         }
 
@@ -86,8 +91,8 @@ class ProvisionTest {
             children.add(sub)
         }
 
-        private fun getenv(key: String): String {
-            return getenvCalls[key]!!
+        private fun getenv(key: String): String? {
+            return getenvCalls[key]
         }
 
         private fun isFile(file: String): Boolean {
@@ -106,7 +111,6 @@ class ProvisionTest {
                     ::listFolders
             ).provision(exe)
         }
-
     }
 
     @Test
@@ -132,21 +136,22 @@ class ProvisionTest {
     fun testWindowsReplay() {
         val replayer = ProvisionReplayer(true)
         replayer.addGetenv("LOCALAPPDATA", "C:\\Users\\jomof\\AppData\\Local")
+        replayer.addGetenv("ANDROID_HOME", null)
         replayer.addGetenv("ProgramFiles", "C:\\Program Files")
         replayer.addGetenv("ProgramFiles(x86)", "C:\\Program Files (x86)")
-        replayer.addIsFile("C:\\Users\\jomof\\AppData\\Local\\Android\\Sdk\\cmake\\3.6.4111459//bin/cmake.exe", true)
-        replayer.addIsFile("C:\\Program Files/CMake/bin/cmake.exe", true)
-        replayer.addIsFile("C:\\Program Files (x86)/CMake/bin/cmake.exe", false)
-        replayer.addIsFile("C:\\Program Files/Microsoft Visual Studio/2017/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe", false)
-        replayer.addIsFile("C:\\Program Files (x86)/Microsoft Visual Studio/2017/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe", true)
-        replayer.addIsFile("C:\\Users\\jomof\\AppData\\Local\\Android\\Sdk\\cmake\\3.6.4111459//bin/ninja.exe", true)
-        replayer.addIsFile("C:\\Program Files/CMake/bin/ninja.exe", false)
-        replayer.addIsFile("C:\\Program Files (x86)/CMake/bin/ninja.exe", false)
-        replayer.addIsFile("C:\\Program Files/Microsoft Visual Studio/2017/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/ninja.exe", false)
-        replayer.addIsFile("C:\\Program Files (x86)/Microsoft Visual Studio/2017/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/ninja.exe", false)
-        replayer.addIsFile("C:\\Program Files/Microsoft Visual Studio/2017/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe", false)
-        replayer.addIsFile("C:\\Program Files (x86)/Microsoft Visual Studio/2017/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe", true)
-        replayer.addSubfolder("C:\\Users\\jomof\\AppData\\Local//Android/Sdk/cmake/", "C:\\Users\\jomof\\AppData\\Local\\Android\\Sdk\\cmake\\3.6.4111459")
+        replayer.addIsFile("C:/Users/jomof/AppData/Local/Android/Sdk/cmake/3.6.4111459/bin/cmake.exe", true)
+        replayer.addIsFile("C:/Program Files/CMake/bin/cmake.exe", true)
+        replayer.addIsFile("C:/Program Files (x86)/CMake/bin/cmake.exe", false)
+        replayer.addIsFile("C:/Program Files/Microsoft Visual Studio/2017/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe", false)
+        replayer.addIsFile("C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe", true)
+        replayer.addIsFile("C:/Users/jomof/AppData/Local/Android/Sdk/cmake/3.6.4111459/bin/ninja.exe", true)
+        replayer.addIsFile("C:/Program Files/CMake/bin/ninja.exe", false)
+        replayer.addIsFile("C:/Program Files (x86)/CMake/bin/ninja.exe", false)
+        replayer.addIsFile("C:/Program Files/Microsoft Visual Studio/2017/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/ninja.exe", false)
+        replayer.addIsFile("C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/ninja.exe", false)
+        replayer.addIsFile("C:/Program Files/Microsoft Visual Studio/2017/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe", false)
+        replayer.addIsFile("C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe", true)
+        replayer.addSubfolder("C:/Users/jomof/AppData/Local/Android/Sdk/cmake/", "C:\\Users\\jomof\\AppData\\Local\\Android\\Sdk\\cmake\\3.6.4111459")
 
         val cmakes = replayer.provision("cmake")
         assertThat(cmakes).hasSize(3)

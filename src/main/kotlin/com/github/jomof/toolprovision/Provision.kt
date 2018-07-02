@@ -46,7 +46,9 @@ fun createProvisioning() =
                         PackageDef(
                                 name = "Android SDK",
                                 search = listOf(
-                                        WindowsSearchLocation(AppData, "/Android/Sdk")))))
+                                        WindowsSearchLocation(AppData, "/Android/Sdk"),
+                                        EnvironmentSearchLocation("ANDROID_HOME")
+                                ))))
 
 private fun isFile(file: String) = File(file).isFile
 private fun listFolders(folder: String): List<String> {
