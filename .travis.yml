@@ -31,6 +31,7 @@ android:
     - google-gdk-license-.+
     
 script:
+- set | grep DROID
 - /usr/bin/cmake --version
 - chmod +x gradlew
 - ./gradlew --info check
