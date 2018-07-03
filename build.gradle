@@ -9,20 +9,45 @@ buildscript {
     }
 }
 
-group 'com.github.jomof'
-version '1.0-SNAPSHOT'
+group 'com.github.jomo'
+group 'jomofisher'
+if (System.getenv()["TRAVIS_TAG"] != null) {
+    version System.getenv()["TRAVIS_TAG"]
+} else {
+    version ''
+}
 
 apply plugin: 'kotlin'
+apply plugin: 'jacoco'
 
 repositories {
     mavenCentral()
-    maven { url 'https://jitpack.io' }
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+    }
 }
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     testCompile 'com.google.truth:truth:0.41'
-    testCompile group: 'junit', name: 'junit', version: '4.11'
 }
 
 compileKotlin {
