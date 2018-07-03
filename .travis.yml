@@ -32,7 +32,9 @@ script:
 #- printenv | grep DROID
 #- "/usr/bin/cmake --version"
 - chmod +x gradlew
-- "./gradlew --info check"
+- "./gradlew assemble check"
+- find . -name "*.jar"
+
 deploy:
   provider: releases
   api_key:

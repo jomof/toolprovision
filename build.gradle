@@ -9,8 +9,7 @@ buildscript {
     }
 }
 
-group 'com.github.jomo'
-group 'jomofisher'
+group 'com.github.jomof'
 if (System.getenv()["TRAVIS_TAG"] != null) {
     version System.getenv()["TRAVIS_TAG"]
 } else {
